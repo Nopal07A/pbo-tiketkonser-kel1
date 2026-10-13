@@ -1,6 +1,27 @@
 {% extends 'ticketing/base.html' %}
 
 {% block content %}
+<style>
+    /* Memaksa warna placeholder menjadi putih transparan agar kontras */
+    #message-input::placeholder {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Memperbaiki hover dropdown agar selaras dengan palet gelap web */
+    .dropdown-menu .dropdown-item:hover, 
+    .dropdown-menu .dropdown-item:focus {
+        background-color: #2a2a2e !important; /* Abu-abu gelap selaras border */
+        color: #FF8C00 !important;            /* Oranye aksen tema web */
+    }
+
+    /* Penanganan khusus untuk tombol hapus saat di-hover */
+    .dropdown-menu form .dropdown-item:hover,
+    .dropdown-menu form .dropdown-item:focus {
+        background-color: #2a2a2e !important;
+        color: #ff5252 !important;            /* Merah terang agar tetap kontras */
+    }
+</style>
+
 <div class="container py-3" style="max-width: 780px;">
     <div class="card shadow-lg rounded-4 overflow-hidden" style="background-color: #161618; border: 1px solid #28282b;">
         
@@ -48,9 +69,35 @@
                     <!-- Balon Pesan Sendiri (Kanan) -->
                     <div class="d-flex justify-content-end align-items-end gap-2">
                         <div class="card border-0 text-white rounded-3 p-2 shadow-sm" style="max-width: 72%; background-color: #FF8C00;">
+                            
                             <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
                                 <span class="fw-bold" style="color: #0d0d0e; font-size: 0.75rem;">Anda</span>
+                                
+                                <!-- Menu Titik Tiga (Dropdown) -->
+                                <div class="dropdown">
+                                    <button class="btn btn-sm p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0d0d0e; font-size: 1.1rem; line-height: 1; font-weight: bold;">
+                                        &#8942;
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="background-color: #1b1b1e; border: 1px solid #38383c; min-width: 120px;">
+                                        <!-- Tombol Salin -->
+                                        <li>
+                                            <button type="button" class="dropdown-item text-white py-2" onclick="copyMessage('{{ msg.message|escapejs }}')" style="font-size: 0.85rem;">
+                                                Salin
+                                            </button>
+                                        </li>
+                                        <!-- Form Hapus -->
+                                        <li>
+                                            <form method="POST" action="{% url 'delete_forum_message' msg.id %}" class="m-0 p-0" onsubmit="return confirm('Yakin ingin menghapus pesan ini?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="dropdown-item text-danger py-2" style="font-size: 0.85rem;">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
+
                             {% if msg.message %}
                                 <div class="text-white mb-1" style="font-size: 0.9rem; word-break: break-word; line-height: 1.35;">{{ msg.message }}</div>
                             {% endif %}
@@ -135,6 +182,18 @@
     const chatContainer = document.getElementById('chat-messages');
     if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Fungsi untuk menyalin teks ke clipboard
+    function copyMessage(text) {
+        if (!text) return; // Jika pesan kosong (hanya gambar), abaikan
+        
+        navigator.clipboard.writeText(text).then(() => {
+            // Berikan feedback visual kecil (opsional)
+            alert('Pesan berhasil disalin!');
+        }).catch(err => {
+            console.error('Gagal menyalin pesan: ', err);
+        });
     }
 </script>
 {% endblock %}

@@ -2,6 +2,10 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
+        
+        <!-- Tombol Kembali -->
+        <a href="javascript:history.back()" class="text-white text-decoration-none mb-3 d-inline-block fw-bold fs-6">&larr; Kembali ke Detail Konser</a>
+        
         <div class="card shadow border-0" style="border-radius: 15px; border-top: 5px solid #FFD700 !important;">
             <div class="card-body p-5 text-center">
                 <span class="badge bg-dark mb-3">Pesanan #{{ pesanan.id|stringformat:"s"|slice:":8" }}</span>

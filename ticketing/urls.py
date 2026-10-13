@@ -10,6 +10,7 @@ urlpatterns = [
     path('history/', views.ticket_history, name='ticket_history'),
     path('forums/', views.forum_list, name='forum_list'),
     path('forums/<uuid:event_id>/', views.forum_room, name='forum_room'),
+    path('forums/message/<int:message_id>/delete/', views.delete_forum_message, name='delete_forum_message'),
     
     path('register/', views.register, name='register'),
 ]

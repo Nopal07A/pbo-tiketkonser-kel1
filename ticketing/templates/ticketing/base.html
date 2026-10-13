@@ -18,11 +18,11 @@
                 {% if user.is_authenticated %}
                     <span class="me-3 fw-semibold">Halo, {{ user.username }}!</span>
                     
-                    <!-- Kondisi Tombol: 'Halaman Utama' jika di history atau forum -->
-                    {% if request.resolver_match.url_name in 'ticket_history forum_list forum_room' %}
-                        <a href="{% url 'event_list' %}" class="btn btn-outline-light btn-sm me-2">Halaman Utama</a>
-                    {% else %}
+                    <!-- Kondisi Tombol: 'Pesanan Saya' HANYA muncul di Beranda (event_list) -->
+                    {% if request.resolver_match.url_name == 'event_list' %}
                         <a href="{% url 'ticket_history' %}" class="btn btn-outline-light btn-sm me-2">Pesanan Saya</a>
+                    {% else %}
+                        <a href="{% url 'event_list' %}" class="btn btn-outline-light btn-sm me-2">Halaman Utama</a>
                     {% endif %}
 
                     <!-- Tombol Forum Diskusi -->
