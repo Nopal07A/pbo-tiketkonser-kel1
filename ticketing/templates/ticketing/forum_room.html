@@ -1,38 +1,23 @@
 {% extends 'ticketing/base.html' %}
-
 {% block content %}
 <style>
-    /* Memaksa warna placeholder menjadi putih transparan agar kontras */
-    #message-input::placeholder {
-        color: rgba(255, 255, 255, 0.8) !important;
+    #message-input::placeholder { color: rgba(255, 255, 255, 0.8) !important; }
+    .dropdown-menu .dropdown-item:hover, .dropdown-menu .dropdown-item:focus {
+        background-color: #2a2a2e !important; color: #FF8C00 !important;
     }
-
-    /* Memperbaiki hover dropdown agar selaras dengan palet gelap web */
-    .dropdown-menu .dropdown-item:hover, 
-    .dropdown-menu .dropdown-item:focus {
-        background-color: #2a2a2e !important; /* Abu-abu gelap selaras border */
-        color: #FF8C00 !important;            /* Oranye aksen tema web */
-    }
-
-    /* Penanganan khusus untuk tombol hapus saat di-hover */
-    .dropdown-menu form .dropdown-item:hover,
-    .dropdown-menu form .dropdown-item:focus {
-        background-color: #2a2a2e !important;
-        color: #ff5252 !important;            /* Merah terang agar tetap kontras */
+    .dropdown-menu form .dropdown-item:hover, .dropdown-menu form .dropdown-item:focus {
+        background-color: #2a2a2e !important; color: #ff5252 !important;
     }
 </style>
 
 <div class="container py-3" style="max-width: 780px;">
     <div class="card shadow-lg rounded-4 overflow-hidden" style="background-color: #161618; border: 1px solid #28282b;">
         
-        <!-- Header Chat Room -->
         <div class="d-flex align-items-center justify-content-between px-3 py-2" style="background-color: #0d0d0e; border-bottom: 1px solid #28282b;">
             <div class="d-flex align-items-center gap-3">
                 <a href="{% url 'forum_list' %}" class="text-white text-decoration-none fs-5 fw-bold" title="Kembali">&larr;</a>
                 
-                <!-- Avatar Header Foto Konser -->
-                <div class="rounded-circle overflow-hidden d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" 
-                     style="width: 44px; height: 44px; border: 2px solid #FF8C00; background-color: #0d0d0e;">
+                <div class="rounded-circle overflow-hidden d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" style="width: 44px; height: 44px; border: 2px solid #FF8C00; background-color: #0d0d0e;">
                     {% if event.poster %}
                         <img src="{{ event.poster.url }}" alt="{{ event.nama_konser }}" style="width: 100%; height: 100%; object-fit: cover;">
                     {% else %}
@@ -40,102 +25,70 @@
                     {% endif %}
                 </div>
                 
-                <!-- Informasi Event & Badge Live Merah -->
                 <div>
                     <div class="d-flex align-items-center gap-2">
                         <h6 class="mb-0 fw-bold text-white">{{ event.nama_konser }}</h6>
-                        <span class="badge d-inline-flex align-items-center gap-1 px-2 py-1" style="background-color: rgba(229, 57, 53, 0.15); color: #ff5252; border: 1px solid rgba(229, 57, 53, 0.4); font-size: 0.65rem;">
-                            <span style="display: inline-block; width: 6px; height: 6px; background-color: #E53935; border-radius: 50%;"></span>
-                            LIVE
-                        </span>
+                        
+                        <!-- Logika Label di Header -->
+                        {% if event.time_status == 'UPCOMING' %}
+                            <span class="badge text-warning border border-warning bg-dark">UPCOMING</span>
+                        {% elif event.time_status == 'LIVE' %}
+                            <span class="badge text-danger border border-danger bg-dark">🔴 LIVE</span>
+                        {% elif event.time_status == 'EXPIRED' %}
+                            <span class="badge text-secondary border border-secondary bg-dark">EXPIRED</span>
+                        {% endif %}
                     </div>
                     <small class="text-secondary" style="font-size: 0.75rem;">Forum Resmi &bull; {{ event.tipe }}</small>
                 </div>
             </div>
-
-            <!-- Opsi Menu Kanan -->
             <div class="text-secondary fs-5 pe-2" style="cursor: pointer;">&#8942;</div>
         </div>
 
-        <!-- Sub-Header Bar -->
         <div class="text-center py-1 fw-semibold text-uppercase" style="background-color: #111113; border-bottom: 1px solid #222225; color: #888888; font-size: 0.7rem; letter-spacing: 1.5px;">
             Khusus Pemegang Tiket Konser
         </div>
 
-        <!-- Chat Container -->
         <div id="chat-messages" class="card-body p-3 d-flex flex-column gap-3" style="height: 480px; overflow-y: auto; background-color: #0d0d0e;">
             {% for msg in forum_messages %}
                 {% if msg.sender == user %}
-                    <!-- Balon Pesan Sendiri (Kanan) -->
                     <div class="d-flex justify-content-end align-items-end gap-2">
                         <div class="card border-0 text-white rounded-3 p-2 shadow-sm" style="max-width: 72%; background-color: #FF8C00;">
-                            
                             <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
                                 <span class="fw-bold" style="color: #0d0d0e; font-size: 0.75rem;">Anda</span>
-                                
-                                <!-- Menu Titik Tiga (Dropdown) -->
+                                {% if not event.is_forum_closed %}
                                 <div class="dropdown">
-                                    <button class="btn btn-sm p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0d0d0e; font-size: 1.1rem; line-height: 1; font-weight: bold;">
-                                        &#8942;
-                                    </button>
+                                    <button class="btn btn-sm p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #0d0d0e; font-size: 1.1rem; line-height: 1; font-weight: bold;">&#8942;</button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="background-color: #1b1b1e; border: 1px solid #38383c; min-width: 120px;">
-                                        <!-- Tombol Salin -->
-                                        <li>
-                                            <button type="button" class="dropdown-item text-white py-2" onclick="copyMessage('{{ msg.message|escapejs }}')" style="font-size: 0.85rem;">
-                                                Salin
-                                            </button>
-                                        </li>
-                                        <!-- Form Hapus -->
+                                        <li><button type="button" class="dropdown-item text-white py-2" onclick="copyMessage('{{ msg.message|escapejs }}')" style="font-size: 0.85rem;">Salin</button></li>
                                         <li>
                                             <form method="POST" action="{% url 'delete_forum_message' msg.id %}" class="m-0 p-0" onsubmit="return confirm('Yakin ingin menghapus pesan ini?');">
                                                 {% csrf_token %}
-                                                <button type="submit" class="dropdown-item text-danger py-2" style="font-size: 0.85rem;">
-                                                    Hapus
-                                                </button>
+                                                <button type="submit" class="dropdown-item text-danger py-2" style="font-size: 0.85rem;">Hapus</button>
                                             </form>
                                         </li>
                                     </ul>
                                 </div>
+                                {% endif %}
                             </div>
-
-                            {% if msg.message %}
-                                <div class="text-white mb-1" style="font-size: 0.9rem; word-break: break-word; line-height: 1.35;">{{ msg.message }}</div>
-                            {% endif %}
-                            {% if msg.image %}
-                                <div class="my-1 rounded overflow-hidden bg-black text-center border border-dark">
-                                    <img src="{{ msg.image.url }}" alt="Upload" class="img-fluid" style="max-height: 220px; object-fit: cover;">
-                                </div>
-                            {% endif %}
+                            {% if msg.message %}<div class="text-white mb-1" style="font-size: 0.9rem; word-break: break-word; line-height: 1.35;">{{ msg.message }}</div>{% endif %}
+                            {% if msg.image %}<div class="my-1 rounded overflow-hidden bg-black text-center border border-dark"><img src="{{ msg.image.url }}" alt="Upload" class="img-fluid" style="max-height: 220px; object-fit: cover;"></div>{% endif %}
                             <div class="text-end" style="color: rgba(255, 255, 255, 0.8); font-size: 0.65rem;">{{ msg.timestamp|date:"H:i" }}</div>
                         </div>
-                        
-                        <!-- Avatar User Sendiri -->
-                        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm flex-shrink-0"
-                             style="width: 32px; height: 32px; background-color: #1f1f22; color: #FF8C00; border: 1.5px solid #FF8C00; font-size: 0.8rem;">
+                        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm flex-shrink-0" style="width: 32px; height: 32px; background-color: #1f1f22; color: #FF8C00; border: 1.5px solid #FF8C00; font-size: 0.8rem;">
                             {{ user.username|slice:":1"|upper }}
                         </div>
                     </div>
                 {% else %}
-                    <!-- Balon Pesan User Lain (Kiri) -->
                     <div class="d-flex justify-content-start align-items-end gap-2">
-                        <!-- Avatar User Lain -->
-                        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm flex-shrink-0"
-                             style="width: 32px; height: 32px; background-color: #1f1f22; color: #ffffff; border: 1.5px solid #38383c; font-size: 0.8rem;">
+                        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm flex-shrink-0" style="width: 32px; height: 32px; background-color: #1f1f22; color: #ffffff; border: 1.5px solid #38383c; font-size: 0.8rem;">
                             {{ msg.sender.username|slice:":1"|upper }}
                         </div>
-
                         <div class="card rounded-3 p-2 shadow-sm" style="max-width: 72%; background-color: #1b1b1e; border: 1px solid #2a2a2e;">
                             <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
                                 <span class="fw-bold" style="color: #FF8C00; font-size: 0.75rem;">{{ msg.sender.username }}</span>
                             </div>
-                            {% if msg.message %}
-                                <div class="text-white mb-1" style="font-size: 0.9rem; word-break: break-word; line-height: 1.35;">{{ msg.message }}</div>
-                            {% endif %}
-                            {% if msg.image %}
-                                <div class="my-1 rounded overflow-hidden bg-black text-center border border-secondary border-opacity-25">
-                                    <img src="{{ msg.image.url }}" alt="Upload" class="img-fluid" style="max-height: 220px; object-fit: cover;">
-                                </div>
-                            {% endif %}
+                            {% if msg.message %}<div class="text-white mb-1" style="font-size: 0.9rem; word-break: break-word; line-height: 1.35;">{{ msg.message }}</div>{% endif %}
+                            {% if msg.image %}<div class="my-1 rounded overflow-hidden bg-black text-center border border-secondary border-opacity-25"><img src="{{ msg.image.url }}" alt="Upload" class="img-fluid" style="max-height: 220px; object-fit: cover;"></div>{% endif %}
                             <div class="text-end text-secondary" style="font-size: 0.65rem;">{{ msg.timestamp|date:"H:i" }}</div>
                         </div>
                     </div>
@@ -148,52 +101,40 @@
             {% endfor %}
         </div>
 
-        <!-- Input Bar Bawah (Auto submit saat memilih gambar) -->
-        <div class="p-2" style="background-color: #0d0d0e; border-top: 1px solid #28282b;">
-            <form id="chat-form" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2 m-0">
-                {% csrf_token %}
-
-                <!-- Tombol Kamera -->
-                <label for="chat-image" class="btn d-flex align-items-center justify-content-center m-0 px-2 py-1 text-secondary border-0" 
-                       title="Lampirkan Gambar" style="cursor: pointer; font-size: 1.25rem;">
-                    &#128247;
-                </label>
-                <input type="file" id="chat-image" name="image" accept="image/*" class="d-none" onchange="this.form.submit()">
-
-                <!-- Input Text -->
-                <input type="text" name="message" id="message-input" 
-                       class="form-control rounded-pill text-white px-3 py-2" 
-                       placeholder="Tulis pesan..." autocomplete="off" 
-                       style="background-color: #1a1a1d; border: 1px solid #333338; font-size: 0.9rem;">
-
-                <!-- Tombol Send -->
-                <button type="submit" class="btn rounded-circle d-flex align-items-center justify-content-center text-white border-0 flex-shrink-0" 
-                        style="width: 40px; height: 40px; background-color: #FF8C00;" title="Kirim">
-                    <span style="font-size: 1.05rem; margin-left: 2px;">&#10148;</span>
-                </button>
-            </form>
-        </div>
+        <!-- Logika Notifikasi dan Penutupan Input -->
+        {% if event.is_forum_closed %}
+            <div class="p-3 text-center text-white" style="background-color: #343a40;">
+                <h5 class="mb-0">🔒 Forum Ini Telah Ditutup</h5>
+            </div>
+        {% else %}
+            {% if event.time_status == 'EXPIRED' %}
+                <!-- Peringatan Forum Segera Ditutup -->
+                <div class="px-2 py-1 text-center" style="background-color: rgba(255, 140, 0, 0.15); border-top: 1px solid rgba(255,140,0,0.5);">
+                    <small class="text-warning fw-bold">Peringatan: Forum chat akan ditutup dalam {{ event.jam_tersisa_forum }} jam.</small>
+                </div>
+            {% endif %}
+            
+            <div class="p-2" style="background-color: #0d0d0e; border-top: 1px solid #28282b;">
+                <form id="chat-form" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2 m-0">
+                    {% csrf_token %}
+                    <label for="chat-image" class="btn d-flex align-items-center justify-content-center m-0 px-2 py-1 text-secondary border-0" title="Lampirkan Gambar" style="cursor: pointer; font-size: 1.25rem;">&#128247;</label>
+                    <input type="file" id="chat-image" name="image" accept="image/*" class="d-none" onchange="this.form.submit()">
+                    <input type="text" name="message" id="message-input" class="form-control rounded-pill text-white px-3 py-2" placeholder="Tulis pesan..." autocomplete="off" style="background-color: #1a1a1d; border: 1px solid #333338; font-size: 0.9rem;">
+                    <button type="submit" class="btn rounded-circle d-flex align-items-center justify-content-center text-white border-0 flex-shrink-0" style="width: 40px; height: 40px; background-color: #FF8C00;" title="Kirim"><span style="font-size: 1.05rem; margin-left: 2px;">&#10148;</span></button>
+                </form>
+            </div>
+        {% endif %}
 
     </div>
 </div>
 
 <script>
-    // Auto-scroll ke posisi pesan terakhir
     const chatContainer = document.getElementById('chat-messages');
-    if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+    if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
 
-    // Fungsi untuk menyalin teks ke clipboard
     function copyMessage(text) {
-        if (!text) return; // Jika pesan kosong (hanya gambar), abaikan
-        
-        navigator.clipboard.writeText(text).then(() => {
-            // Berikan feedback visual kecil (opsional)
-            alert('Pesan berhasil disalin!');
-        }).catch(err => {
-            console.error('Gagal menyalin pesan: ', err);
-        });
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => { alert('Pesan berhasil disalin!'); }).catch(err => { console.error('Gagal menyalin pesan: ', err); });
     }
 </script>
 {% endblock %}

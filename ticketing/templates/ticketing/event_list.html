@@ -75,6 +75,12 @@
     .swiper-button-next {
         right: 20px;
     }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
 </style>
 
 <!-- Banner Utama -->
@@ -105,8 +111,24 @@
                     {% endif %}
 
                     <div class="card-body d-flex flex-column p-4">
+                        
+                        <!-- Kontainer Flexbox untuk menyejajarkan dua elemen -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            
+                            <!-- Label Kategori Konser Asli (Kiri) -->
+                            <span class="badge" style="background-color: #112250; font-size: 0.8rem;">{{ event.tipe }}</span>
+                            
+                            <!-- Label Status Waktu (Kanan) -->
+                            {% if event.time_status == 'UPCOMING' %}
+                                <span class="badge text-dark fw-bold border border-2 border-warning bg-transparent">UPCOMING</span>
+                            {% elif event.time_status == 'LIVE' %}
+                                <span class="badge text-danger fw-bold border border-2 border-danger bg-transparent" style="animation: pulse 1.5s infinite;">🔴 LIVE</span>
+                            {% elif event.time_status == 'EXPIRED' %}
+                                <span class="badge text-secondary fw-bold border border-2 border-secondary bg-transparent">EXPIRED</span>
+                            {% endif %}
+                        </div>
+                        
                         <div>
-                            <span class="badge mb-3" style="background-color: #112250; font-size: 0.8rem;">{{ event.tipe }}</span>
                             <h5 class="card-title fw-bold text-dark mb-2">{{ event.nama_konser }}</h5>
                             <p class="small text-secondary mb-1">📍 {{ event.venue.nama }}, {{ event.venue.kota }}</p>
                             <p class="small text-secondary mb-1">📅 {{ event.tanggal|date:"d M Y, H:i" }}</p>
@@ -194,13 +216,11 @@
             resistanceRatio: 0.65,
             initialSlide: 0,
 
-            // 1. Integrasi Tombol Klik Panah Kiri dan Kanan
             navigation: {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
             },
 
-            // 2. Integrasi Navigasi Keyboard Komputer (Tombol Panah Kiri & Kanan)
             keyboard: {
                 enabled: true,
                 onlyInViewport: true,

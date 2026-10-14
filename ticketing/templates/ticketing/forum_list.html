@@ -11,30 +11,51 @@
     <!-- List Forum -->
     <div class="list-group shadow-sm" id="forum-list-container">
         {% for event in events %}
-        <a href="{% url 'forum_room' event.id %}" class="list-group-item list-group-item-action d-flex align-items-center p-3 forum-item mb-2 rounded-3" style="border-left: 5px solid #FF8C00; background-color: #ffffff;">
-            
-            <!-- Foto Poster Konser Sebagai Avatar Profil -->
-            <div class="rounded-circle overflow-hidden d-flex justify-content-center align-items-center me-3 shadow-sm flex-shrink-0" 
-                 style="width: 52px; height: 52px; border: 2px solid #FF8C00; background-color: #112250;">
-                {% if event.poster %}
-                    <img src="{{ event.poster.url }}" alt="{{ event.nama_konser }}" style="width: 100%; height: 100%; object-fit: cover;">
-                {% else %}
-                    <span class="fw-bold fs-5 text-white">{{ event.nama_konser|slice:":1"|upper }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="flex-grow-1">
-                <h5 class="mb-0 fw-bold text-dark forum-title">{{ event.nama_konser }}</h5>
-                <small class="text-secondary">Klik untuk bergabung dengan pembeli lainnya...</small>
-            </div>
-        </a>
+            {% if event.is_forum_closed %}
+                <!-- Tampilan Forum Ditutup (Teks Terbaca, Avatar Abu-abu, Ikon Gembok di Kanan) -->
+                <div class="list-group-item d-flex align-items-center p-3 forum-item mb-2 rounded-3" style="border-left: 5px solid #495057; background-color: #1b1b1e; border-top: 1px solid #28282b; border-right: 1px solid #28282b; border-bottom: 1px solid #28282b;">
+                    
+                    <!-- Avatar Poster dengan Efek Grayscale agar terkesan non-aktif -->
+                    <div class="rounded-circle overflow-hidden d-flex justify-content-center align-items-center me-3 shadow-sm flex-shrink-0" style="width: 52px; height: 52px; border: 2px solid #495057; background-color: #0d0d0e;">
+                        {% if event.poster %}
+                            <img src="{{ event.poster.url }}" alt="{{ event.nama_konser }}" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); opacity: 0.5;">
+                        {% else %}
+                            <span class="fw-bold fs-5 text-secondary">{{ event.nama_konser|slice:":1"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-grow-1">
+                        <h5 class="mb-0 fw-bold text-secondary forum-title">{{ event.nama_konser }}</h5>
+                        <small class="text-secondary">Forum telah ditutup (H+3 lewat).</small>
+                    </div>
+                    
+                    <!-- Logo Gembok ditarik ke kanan oleh flex-grow-1 milik kontainer sebelah kirinya -->
+                    <div class="fs-4 text-secondary ps-3" title="Terkunci">
+                        &#128274;
+                    </div>
+                </div>
+            {% else %}
+                <!-- Tampilan Forum Aktif (Link Asli) -->
+                <a href="{% url 'forum_room' event.id %}" class="list-group-item list-group-item-action d-flex align-items-center p-3 forum-item mb-2 rounded-3" style="border-left: 5px solid #FF8C00; background-color: #ffffff;">
+                    <div class="rounded-circle overflow-hidden d-flex justify-content-center align-items-center me-3 shadow-sm flex-shrink-0" style="width: 52px; height: 52px; border: 2px solid #FF8C00; background-color: #112250;">
+                        {% if event.poster %}
+                            <img src="{{ event.poster.url }}" alt="{{ event.nama_konser }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <span class="fw-bold fs-5 text-white">{{ event.nama_konser|slice:":1"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-0 fw-bold text-dark forum-title">{{ event.nama_konser }}</h5>
+                        <small class="text-secondary">Klik untuk bergabung dengan pembeli lainnya...</small>
+                    </div>
+                </a>
+            {% endif %}
         {% empty %}
         <div class="text-center py-5 text-secondary">
             Kamu belum memiliki akses forum. Beli tiket konser terlebih dahulu!
         </div>
         {% endfor %}
         
-        <!-- Notifikasi saat hasil search kosong -->
         <div id="no-search-results" class="text-center py-4 text-secondary" style="display: none;">
             Forum konser tidak ditemukan.
         </div>
@@ -42,7 +63,6 @@
 </div>
 
 <script>
-    // Live Search Otomatis
     const searchInput = document.getElementById('search-input');
     const forumItems = document.querySelectorAll('.forum-item');
     const noResults = document.getElementById('no-search-results');

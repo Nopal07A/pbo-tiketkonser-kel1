@@ -14,14 +14,11 @@ def sensor_pesan(teks):
     if not teks:
         return teks
     
-    # 1. Sensor Kata Kasar (Case Insensitive)
     daftar_kata_kasar = ['anjing', 'babi', 'bangsat', 'tolol', 'goblok', 'kontol', 'memek']
-    
     for kata in daftar_kata_kasar:
         pola_kasar = re.compile(r'\b' + re.escape(kata) + r'\b', re.IGNORECASE)
         teks = pola_kasar.sub('*' * len(kata), teks)
     
-    # 2. Sensor Nomor Telepon (10-12 angka berdekatan)
     pola_telepon = re.compile(r'\b(\d{5,7})(\d{5})\b')
     teks = pola_telepon.sub(r'\g<1>*****', teks)
     
@@ -46,7 +43,6 @@ def book_ticket(request, category_id):
         except ValidationError as e:
             messages.error(request, e.message)
             return redirect(request.META.get('HTTP_REFERER', '/'))
-            
     return redirect('event_list')
 
 @login_required(login_url='login')
@@ -71,7 +67,6 @@ def ticket_history(request):
     pesanan_lunas = Order.objects.filter(
         user=request.user, status='PAID'
     ).prefetch_related('orderitem_set__ticket', 'orderitem_set__category__event').order_by('-waktu_pesan')
-    
     return render(request, 'ticketing/history.html', {'pesanan_lunas': pesanan_lunas})
 
 def register(request):
@@ -92,7 +87,6 @@ def register(request):
 
 @login_required
 def forum_list(request):
-    # Ambil event dari pesanan user yang sudah berstatus PAID
     user_events = Event.objects.filter(
         ticketcategory__orderitem__order__user=request.user,
         ticketcategory__orderitem__order__status='PAID'
@@ -102,8 +96,6 @@ def forum_list(request):
 @login_required
 def forum_room(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    
-    # Validasi kepemilikan tiket lunas untuk event ini
     has_ticket = OrderItem.objects.filter(
         order__user=request.user,
         order__status='PAID',
@@ -114,10 +106,13 @@ def forum_room(request, event_id):
         return redirect('forum_list')
 
     if request.method == 'POST':
+        if event.is_forum_closed:
+            messages.error(request, "Forum ini telah ditutup karena melewati batas H+3.")
+            return redirect('forum_room', event_id=event.id)
+
         pesan = request.POST.get('message')
         gambar = request.FILES.get('image')
         
-        # Eksekusi fungsi sensor sebelum objek dibuat
         if pesan:
             pesan = sensor_pesan(pesan)
         
@@ -130,7 +125,6 @@ def forum_room(request, event_id):
             )
         return redirect('forum_room', event_id=event.id)
 
-    # Gunakan nama 'forum_messages' agar tidak konflik dengan messages flash bawaan Django
     forum_messages = event.forum_messages.all()
     return render(request, 'ticketing/forum_room.html', {
         'event': event, 
@@ -139,16 +133,11 @@ def forum_room(request, event_id):
 
 @login_required
 def delete_forum_message(request, message_id):
-    # Ambil pesan berdasarkan ID
     message = get_object_or_404(ForumMessage, id=message_id)
-    
-    # VALIDASI KRUSIAL: Cegah user menghapus pesan orang lain
     if message.sender != request.user:
         messages.error(request, "Anda tidak berhak menghapus pesan ini.")
         return redirect('forum_room', event_id=message.event.id)
     
-    # Simpan event_id sebelum pesan dihapus untuk keperluan redirect
     event_id = message.event.id
     message.delete()
-    
     return redirect('forum_room', event_id=event_id)
